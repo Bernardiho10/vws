@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { Providers } from "@/components/providers/providers"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -35,6 +36,7 @@ export default function RootLayout({
               </footer>
             </div>
           </Providers>
+          <Toaster position="top-right" closeButton richColors />
         </ThemeProvider>
       </body>
     </html>

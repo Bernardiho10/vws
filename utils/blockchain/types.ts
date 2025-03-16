@@ -71,6 +71,8 @@ export interface SupportBadge {
   readonly tokenId: number | null;
   readonly imageUrl: string;
   readonly owner: string;
+  readonly caption: string;
+  readonly location: string;
   readonly createdAt: number;
   readonly mintStatus: MintStatus;
 }

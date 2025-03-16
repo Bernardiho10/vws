@@ -74,7 +74,9 @@ export async function uploadMetadata(
  */
 export function createSupportBadge(
   imageUrl: string,
-  owner: string = ""
+  owner: string = "",
+  caption: string = "",
+  location: string = ""
 ): SupportBadge {
   // Use the MintStatus type for type safety
   const initialStatus: MintStatus = "not_minted";
@@ -84,6 +86,8 @@ export function createSupportBadge(
     tokenId: null,
     imageUrl,
     owner,
+    caption,
+    location,
     createdAt: Date.now(),
     mintStatus: initialStatus,
   };

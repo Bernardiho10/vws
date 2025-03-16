@@ -27,6 +27,8 @@ import { Check, CheckCircle, Medal, Loader2 } from "lucide-react";
  */
 interface MintBadgeButtonProps {
   readonly imageData: string;
+  readonly caption: string;
+  readonly location: string;
   readonly variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
   readonly size?: "default" | "sm" | "lg" | "icon";
   readonly onMintSuccess?: () => void;
@@ -37,6 +39,8 @@ interface MintBadgeButtonProps {
  */
 export function MintBadgeButton({
   imageData,
+  caption,
+  location,
   variant = "default",
   size = "default",
   onMintSuccess,
@@ -63,7 +67,7 @@ export function MintBadgeButton({
 
     try {
       // Create a new badge
-      const newBadge = createSupportBadge(imageData, walletState.address || "");
+      const newBadge = createSupportBadge(imageData, walletState.address || "", caption, location);
       
       setBadge(newBadge);
 
