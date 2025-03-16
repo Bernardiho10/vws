@@ -1,0 +1,14 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'POST') {
+    const { feedback } = req.body;
+
+    // Here you can implement logic to store feedback in a database
+    console.log('Feedback received:', feedback);
+
+    return res.status(200).json({ message: 'Feedback submitted successfully!' });
+  }
+
+  return res.status(405).json({ message: 'Method not allowed' });
+}
