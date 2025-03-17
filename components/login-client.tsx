@@ -9,11 +9,13 @@ import { useAuth } from '@/context/auth-context';
 
 interface LoginFormState {
   readonly username: string;
+  readonly password: string;
   readonly error: string;
 }
 
 // Default user for easy login
-const DEFAULT_USER = 'demo_user';
+const DEFAULT_USER = 'demo@example.com';
+const DEFAULT_PASSWORD = 'demo123456';
 
 /**
  * Client-side login component
@@ -21,9 +23,11 @@ const DEFAULT_USER = 'demo_user';
 export function LoginClient(): React.ReactElement | null {
   const [formState, setFormState] = useState<LoginFormState>({
     username: DEFAULT_USER,
+    password: DEFAULT_PASSWORD,
     error: ''
   });
-  const { user, login } = useAuth();
+  
+  const { user, signInWithEmail } = useAuth();
   const router = useRouter();
   
   // Check if user is already logged in
@@ -33,20 +37,32 @@ export function LoginClient(): React.ReactElement | null {
     }
   }, [user, router]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     
     if (!formState.username.trim()) {
-      setFormState(prev => ({ ...prev, error: 'Username is required' }));
+      setFormState(prev => ({ ...prev, error: 'Email is required' }));
+      return;
+    }
+
+    if (!formState.password.trim()) {
+      setFormState(prev => ({ ...prev, error: 'Password is required' }));
       return;
     }
     
-    login(formState.username);
-    
-    // Small delay to allow the login state to be set
-    setTimeout(() => {
+    try {
+      await signInWithEmail({
+        email: formState.username,
+        password: formState.password
+      });
+      
       router.push('/dashboard');
-    }, 100);
+    } catch (error) {
+      setFormState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Login failed. Please try again.'
+      }));
+    }
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -73,10 +89,20 @@ export function LoginClient(): React.ReactElement | null {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Input
-                type="text"
+                type="email"
                 name="username"
-                placeholder="Username"
+                placeholder="Email"
                 value={formState.username}
+                onChange={handleInputChange}
+                aria-required="true"
+              />
+            </div>
+            <div className="space-y-2">
+              <Input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formState.password}
                 onChange={handleInputChange}
                 aria-required="true"
               />
@@ -95,12 +121,28 @@ export function LoginClient(): React.ReactElement | null {
             <Button 
               variant="link" 
               className="p-0 h-auto text-blue-600 hover:underline"
-              onClick={(e) => {
+              onClick={() => router.push('/signup')}
+            >
+              Sign up
+            </Button>
+            {' | '}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-blue-600 hover:underline"
+              onClick={async (e) => {
                 e.preventDefault();
-                login(DEFAULT_USER);
-                setTimeout(() => {
+                try {
+                  await signInWithEmail({
+                    email: DEFAULT_USER,
+                    password: DEFAULT_PASSWORD
+                  });
                   router.push('/dashboard');
-                }, 100);
+                } catch {
+                  setFormState(prev => ({ 
+                    ...prev, 
+                    error: 'Demo login failed. Please try with your credentials.'
+                  }));
+                }
               }}
             >
               Login as Demo User

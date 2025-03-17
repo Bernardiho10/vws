@@ -23,7 +23,7 @@ export interface FeedbackColumn {
   readonly id: string;
   readonly header: string;
   readonly accessorKey: keyof FeedbackData;
-  readonly cell?: (info: { getValue: () => any }) => React.ReactNode;
+  readonly cell?: (info: { getValue: () => React.ReactNode }) => React.ReactNode;
 }
 
 /**

@@ -47,15 +47,15 @@ type DashboardStatsArray = readonly DashboardStat[];
  * Client-side dashboard component
  */
 export function Dashboard(): React.ReactElement | null {
-  const { user } = useAuth();
+  const { authState } = useAuth();
   const router = useRouter();
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!user) {
+    if (!authState.user) {
       router.push("/login");
     }
-  }, [user, router]);
+  }, [authState.user, router]);
 
   // Generate mock feedback data
   const feedbackData: FeedbackDataArray = useMemo(() => 
@@ -107,7 +107,7 @@ export function Dashboard(): React.ReactElement | null {
   ] as const, []);
 
   // Display loading or redirect if no user
-  if (!user) {
+  if (!authState.user) {
     return null;
   }
 
@@ -116,7 +116,7 @@ export function Dashboard(): React.ReactElement | null {
       {/* Welcome header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome, {user}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome, {authState.profile?.username || 'User'}</h1>
           <p className="text-muted-foreground">
             Here&apos;s an overview of your Vote With Sense dashboard
           </p>
