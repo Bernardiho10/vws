@@ -60,8 +60,16 @@ export function BlockchainProvider({ children }: BlockchainProviderProps): React
   const { disconnectAsync } = useDisconnect();
   const { switchChainAsync } = useSwitchChain();
 
-  // Local state
-  const [walletState, setWalletState] = useState<WalletState>(defaultWalletState);
+  // Local state - initialize with values from hooks to avoid unnecessary renders
+  const [walletState, setWalletState] = useState<WalletState>({
+    isConnected: isConnected || false,
+    address: address || null,
+    chainId: chainId || null,
+    isConnecting: isConnecting || false,
+    error: null,
+    isReconnecting: isReconnecting || false,
+  });
+  
   const [error, setError] = useState<Error | null>(null);
 
   /**
@@ -123,15 +131,28 @@ export function BlockchainProvider({ children }: BlockchainProviderProps): React
 
   // Update wallet state when account or chain changes
   useEffect(() => {
-    setWalletState({
+    // Only update if any values have actually changed
+    const newState = {
       isConnected,
       address: address || null,
       chainId: chainId || null,
       isConnecting,
       error,
       isReconnecting,
-    });
-  }, [address, chainId, error, isConnected, isConnecting, isReconnecting]);
+    };
+    
+    // Compare with current state to avoid unnecessary updates
+    if (
+      walletState.isConnected !== newState.isConnected ||
+      walletState.address !== newState.address ||
+      walletState.chainId !== newState.chainId ||
+      walletState.isConnecting !== newState.isConnecting ||
+      walletState.error !== newState.error ||
+      walletState.isReconnecting !== newState.isReconnecting
+    ) {
+      setWalletState(newState);
+    }
+  }, [address, chainId, error, isConnected, isConnecting, isReconnecting, walletState]);
 
   const contextValue = {
     walletState,

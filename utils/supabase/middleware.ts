@@ -7,9 +7,9 @@ import { cookies } from 'next/headers'
  * @param request NextRequest object from middleware
  * @returns Supabase client and response object
  */
-export function createClient(request: NextRequest) {
+export async function createClient(request: NextRequest) {
   // Create a cookies container from the request
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
 
   // Create a new Supabase client for server-side operations
   const supabase = createServerClient(
@@ -18,6 +18,7 @@ export function createClient(request: NextRequest) {
     {
       cookies: {
         get(name: string) {
+          //console.log(cookieStore)
           return cookieStore.get(name)?.value
         },
         set(name: string, value: string, options: any) {

@@ -56,15 +56,22 @@ type DashboardStatsArray = readonly DashboardStat[];
  * Client-side dashboard component that displays feedback verification and analytics
  */
 export function Dashboard(): React.ReactElement | null {
-  const { user } = useAuth();
+  const { authState } = useAuth();
   const router = useRouter();
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!user) {
-      router.push("/login");
+    // console.log(authState)
+    if (typeof window !== 'undefined' && authState.loading) {
+      
+      return; // Prevent redirect until authentication is resolved
     }
-  }, [user, router]);
+  
+    if (!authState.user) {
+      //console.log("User is already logged in", authState.user)
+      router.push('/login');
+    }
+  }, [authState.user, authState.loading, router]);
 
   // Generate mock feedback data
   const feedbackData: FeedbackDataArray = useMemo(() => 
@@ -80,9 +87,9 @@ export function Dashboard(): React.ReactElement | null {
   const currentUserPoints = useMemo(() => {
     // Find points for current user or return first entry if not found
     return usersPointsData.find(userData => 
-      userData.username === user
+      userData.username === authState.user?.email
     ) || usersPointsData[0];
-  }, [usersPointsData, user]);
+  }, [usersPointsData, authState.user]);
 
   // Mock statistics data
   const dashboardStats: DashboardStatsArray = useMemo(() => [
@@ -129,7 +136,7 @@ export function Dashboard(): React.ReactElement | null {
   ] as const, []);
 
   // Display loading or redirect if no user
-  if (!user) {
+  if (!authState.user) {
     return null;
   }
 
@@ -138,7 +145,7 @@ export function Dashboard(): React.ReactElement | null {
       {/* Welcome header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome, {user}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome, {authState.user?.email}</h1>
           <p className="text-muted-foreground">
             Here&apos;s an overview of your Vote With Sense dashboard
           </p>
@@ -235,7 +242,7 @@ export function Dashboard(): React.ReactElement | null {
                 <CardContent>
                   <PointsLeaderboard 
                     usersData={usersPointsData} 
-                    currentUsername={user || ""}
+                    currentUsername={authState.user?.email || ""}
                   />
                 </CardContent>
               </Card>

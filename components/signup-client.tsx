@@ -41,10 +41,17 @@ export function SignupClient(): React.ReactElement | null {
   
   // Check if user is already logged in
   useEffect(() => {
-    if (typeof window !== 'undefined' && authState.user) {
+    // console.log(authState)
+    if (typeof window !== 'undefined' && authState.loading) {
+      
+      return; // Prevent redirect until authentication is resolved
+    }
+  
+    if (authState.user) {
+      //console.log("User is already logged in", authState.user)
       router.push('/dashboard');
     }
-  }, [authState.user, router]);
+  }, [authState.user, authState.loading, router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -121,9 +128,9 @@ export function SignupClient(): React.ReactElement | null {
   };
 
   // Show nothing if already logged in to prevent flash
-  if (typeof window !== 'undefined' && authState.user) {
-    return null;
-  }
+  // if (typeof window !== 'undefined' && authState.user) {
+  //   return null;
+  // }
 
   if (formState.success) {
     return (

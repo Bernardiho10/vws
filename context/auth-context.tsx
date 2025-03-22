@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { User } from '@supabase/supabase-js';
 import { 
   signIn, 
@@ -59,15 +61,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Authentication provider component
  */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Client-side only detection
+  const [mounted, setMounted] = useState(false);
   const [authState, setAuthState] = useState<AuthState>(initialState);
+
+  // Set mounted flag after initial render
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   /**
    * Initialize authentication state from session
    */
   const initializeAuth = useCallback(async (): Promise<void> => {
+    if (!mounted) return;
+    
     setAuthState(prev => ({ ...prev, loading: true }));
     try {
       const sessionResponse = await getSession();
+      
       if (sessionResponse.error) {
         throw sessionResponse.error;
       }
@@ -105,16 +118,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during auth initialization'
       });
     }
-  }, []);
+  }, [mounted]);
 
+  // Initialize auth after component mounts on client
   useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+    if (mounted) {
+      initializeAuth();
+    }
+  }, [initializeAuth, mounted]);
 
   /**
    * Sign up with email and password
    */
   const signUpWithEmail = useCallback(async (credentials: SignUpCredentials): Promise<void> => {
+    if (!mounted) return;
+    
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
@@ -148,17 +166,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during sign up'
       }));
     }
-  }, []);
+  }, [mounted]);
 
   /**
    * Sign in with email and password
    */
   const signInWithEmail = useCallback(async (credentials: SignInCredentials): Promise<void> => {
+    if (!mounted) return;
+    
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
       const signInResponse = await signIn(credentials);
       if (signInResponse.error) {
+        console.error('Error during sign in:', signInResponse.error);
         throw signInResponse.error;
       }
 
@@ -183,12 +204,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during sign in'
       }));
     }
-  }, []);
+  }, [mounted]);
 
   /**
    * Connect with wallet address and signature
    */
   const connectWithWallet = useCallback(async (walletAddress: string, signature: string): Promise<void> => {
+    if (!mounted) return;
+    
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
@@ -252,17 +275,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during wallet connection'
       }));
     }
-  }, []);
+  }, [mounted]);
 
   /**
    * Update user profile
    */
   const updateProfile = useCallback(async (profileData: UserProfileUpdateParams): Promise<void> => {
-    if (!authState.user) {
-      setAuthState(prev => ({ 
-        ...prev, 
-        error: 'Cannot update profile when not logged in'
-      }));
+    if (!mounted || !authState.user) {
+      if (!authState.user) {
+        setAuthState(prev => ({ 
+          ...prev, 
+          error: 'Cannot update profile when not logged in'
+        }));
+      }
       return;
     }
 
@@ -287,17 +312,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during profile update'
       }));
     }
-  }, [authState.user]);
+  }, [authState.user, mounted]);
 
   /**
    * Link wallet address to profile
    */
   const linkWallet = useCallback(async (walletAddress: string): Promise<void> => {
-    if (!authState.user) {
-      setAuthState(prev => ({ 
-        ...prev, 
-        error: 'Cannot link wallet when not logged in'
-      }));
+    if (!mounted || !authState.user) {
+      if (!authState.user) {
+        setAuthState(prev => ({ 
+          ...prev, 
+          error: 'Cannot link wallet when not logged in'
+        }));
+      }
       return;
     }
 
@@ -322,12 +349,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during wallet linking'
       }));
     }
-  }, [authState.user]);
+  }, [authState.user, mounted]);
 
   /**
    * Logout user
    */
   const logout = useCallback(async (): Promise<void> => {
+    if (!mounted) return;
+    
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
@@ -344,7 +373,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Unknown error during logout'
       }));
     }
-  }, []);
+  }, [mounted]);
 
   /**
    * Legacy login function for backward compatibility
@@ -357,8 +386,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Prepare the context value with both new and legacy properties
-  const value: AuthContextType = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<AuthContextType>(() => ({
     authState,
     signUpWithEmail,
     signInWithEmail,
@@ -369,7 +398,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Legacy properties for backward compatibility
     user: authState.profile?.username || null,
     login
-  };
+  }), [
+    authState,
+    signUpWithEmail,
+    signInWithEmail,
+    connectWithWallet,
+    updateProfile,
+    linkWallet,
+    logout,
+    login
+  ]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -387,4 +425,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+};        
