@@ -1,171 +1,68 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import Link from 'next/link';
+
+import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/context/auth-context';
+import { Label } from '@/components/ui/label';
+import { Icons } from '@/components/ui/icons';
+import LoginForm from "@/components/login-form";
 
-interface LoginFormState {
-  readonly username: string;
-  readonly password: string;
-  readonly error: string;
-}
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
 
-// Default user for easy login
-const DEFAULT_USER = 'demo@example.com';
-const DEFAULT_PASSWORD = 'demo123456';
+type LoginFormData = z.infer<typeof loginSchema>;
 
 /**
  * Client-side login component
  */
-export function LoginClient(): React.ReactElement | null {
-  const [formState, setFormState] = useState<LoginFormState>({
-    username: DEFAULT_USER,
-    password: DEFAULT_PASSWORD,
-    error: ''
-  });
-  
-  // const { user, signInWithEmail } = useAuth();
-  // const router = useRouter();
-  
-  // // Check if user is already logged in
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined' && user) {
-  //     router.push('/dashboard');
-  //   }
-  // }, [user, router]);
-  const { authState, signInWithEmail } = useAuth();
+export default function LoginClient() {
   const router = useRouter();
+  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    // console.log(authState)
-    if (typeof window !== 'undefined' && authState.loading) {
-      
-      return; // Prevent redirect until authentication is resolved
-    }
-  
-    if (authState.user) {
-      //console.log("User is already logged in", authState.user)
-      router.push('/dashboard');
-    }
-  }, [authState.user, authState.loading, router]);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    event.preventDefault();
-    
-    if (!formState.username.trim()) {
-      setFormState(prev => ({ ...prev, error: 'Email is required' }));
-      return;
-    }
-
-    if (!formState.password.trim()) {
-      setFormState(prev => ({ ...prev, error: 'Password is required' }));
-      return;
-    }
-    
+  const handleLogin = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      await signInWithEmail({
-        email: formState.username,
-        password: formState.password
-      });
-      
-      router.push('/dashboard');
+      const { error } = await login(email, password);
+      if (error) throw error;
+      router.push("/dashboard");
     } catch (error) {
-      setFormState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Login failed. Please try again.'
-      }));
+      console.error("Login error:", error);
+      toast.error(error instanceof Error ? error.message : 'Failed to log in');
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = event.target;
-    setFormState(prev => ({
-      ...prev,
-      [name]: value,
-      error: ''
-    }));
-  };
-
-  // Show nothing if already logged in to prevent flash
-  // if (typeof window !== 'undefined' && authState.user) {
-  //   return null;
-  // }
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center">Login to Vote With Sense</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                name="username"
-                placeholder="Email"
-                value={formState.username}
-                onChange={handleInputChange}
-                aria-required="true"
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formState.password}
-                onChange={handleInputChange}
-                aria-required="true"
-              />
-            </div>
-            {formState.error && (
-              <p className="text-red-500 text-sm" role="alert">{formState.error}</p>
-            )}
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-center">
-            Don&apos;t have an account?{' '}
-            <Button 
-              variant="link" 
-              className="p-0 h-auto text-blue-600 hover:underline"
-              onClick={() => router.push('/signup')}
-            >
-              Sign up
-            </Button>
-            {' | '}
-            <Button 
-              variant="link" 
-              className="p-0 h-auto text-blue-600 hover:underline"
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  await signInWithEmail({
-                    email: DEFAULT_USER,
-                    password: DEFAULT_PASSWORD
-                  });
-                  router.push('/dashboard');
-                } catch {
-                  setFormState(prev => ({ 
-                    ...prev, 
-                    error: 'Demo login failed. Please try with your credentials.'
-                  }));
-                }
-              }}
-            >
-              Login as Demo User
-            </Button>
-          </p>
-        </CardFooter>
-      </Card>
+    <div className="grid gap-6">
+      <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or
+          </span>
+        </div>
+      </div>
+      <div className="text-center text-sm">
+        Don't have an account?{" "}
+        <Link href="/signup" className="font-semibold text-primary hover:underline">
+          Sign up
+        </Link>
+      </div>
     </div>
   );
 }

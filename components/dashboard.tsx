@@ -62,8 +62,7 @@ export function Dashboard(): React.ReactElement | null {
   // Redirect to login if not authenticated
   useEffect(() => {
     // console.log(authState)
-    if (typeof window !== 'undefined' && authState.loading) {
-      
+    if (typeof window !== 'undefined' && authState.isLoading) {
       return; // Prevent redirect until authentication is resolved
     }
   
@@ -71,7 +70,7 @@ export function Dashboard(): React.ReactElement | null {
       //console.log("User is already logged in", authState.user)
       router.push('/login');
     }
-  }, [authState.user, authState.loading, router]);
+  }, [authState.user, authState.isLoading, router]);
 
   // Generate mock feedback data
   const feedbackData: FeedbackDataArray = useMemo(() => 

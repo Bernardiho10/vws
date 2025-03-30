@@ -2,6 +2,7 @@
 
 // Import only the types we need
 import { NFTMetadata, SupportBadge, MintStatus } from "./types";
+import { storeOnIPFS } from '@/services/ipfs'
 
 /**
  * Configuration for NFT operations
@@ -52,21 +53,25 @@ export function createNFTMetadata(
 }
 
 /**
- * Uploads NFT metadata to IPFS (simulated for now)
+ * Uploads NFT metadata to IPFS
  */
 export async function uploadMetadata(
   metadataToUpload: NFTMetadata
 ): Promise<string> {
-  // In a production environment, this would upload to actual IPFS
-  // For now, we'll simulate with a delayed promise
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate an IPFS hash
-      const hash = `ipfs://Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-      console.log("Metadata uploaded:", metadataToUpload);
-      resolve(hash);
-    }, 1500);
-  });
+  try {
+    // Convert metadata to JSON string and then to Uint8Array
+    const jsonString = JSON.stringify(metadataToUpload)
+    const data = new TextEncoder().encode(jsonString)
+    
+    // Upload to IPFS using Helia
+    const cid = await storeOnIPFS(data)
+    
+    // Return IPFS URI
+    return `ipfs://${cid}`
+  } catch (error) {
+    console.error('Error uploading metadata to IPFS:', error)
+    throw new Error('Failed to upload metadata to IPFS')
+  }
 }
 
 /**

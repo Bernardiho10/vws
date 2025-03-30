@@ -1,0 +1,24 @@
+version: 1
+inputs:
+  input:
+    shape: [1, 3, 320, 320]
+    type: float32
+outputs:
+  output:
+    shape: [1, 15, 8]
+    type: float32
+nodes:
+  - name: conv1
+    op_type: Conv
+    inputs: [input]
+    outputs: [conv1_output]
+    attributes:
+      kernel_shape: [3, 3]
+      strides: [1, 1]
+      pads: [1, 1, 1, 1]
+      dilations: [1, 1]
+      group: 1
+  - name: relu1
+    op_type: Relu
+    inputs: [conv1_output]
+    outputs: [output] 

@@ -9,28 +9,27 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { authState } = useAuth();
   const router = useRouter();
   const [isClient, setIsClient] = useState<boolean>(false);
 
   useEffect(() => {
     setIsClient(true);
-    
-    if (typeof window !== 'undefined' && !user) {
+  }, []);
+
+  useEffect(() => {
+    if (isClient && !authState.isLoading && !authState.user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [isClient, authState.user, authState.isLoading, router]);
 
-  // Don't render anything during SSR to prevent hydration mismatches
-  if (!isClient) {
+  if (!isClient || authState.isLoading) {
+    return null; // or a loading spinner
+  }
+
+  if (!authState.user) {
     return null;
   }
 
-  // If not authenticated and on client-side, show loading
-  if (!user) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  // If authenticated, render children
   return <>{children}</>;
 };

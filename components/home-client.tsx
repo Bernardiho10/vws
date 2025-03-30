@@ -116,7 +116,7 @@ export function Dashboard(): React.ReactElement | null {
       {/* Welcome header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome, {authState.profile?.username || 'User'}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome, {authState.user?.email || 'User'}</h1>
           <p className="text-muted-foreground">
             Here&apos;s an overview of your Vote With Sense dashboard
           </p>

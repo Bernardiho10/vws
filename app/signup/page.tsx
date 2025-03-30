@@ -1,4 +1,4 @@
-import { SignupClient } from '../../components/signup-client';
+import SignupClient from '@/components/signup-client';
 
 /**
  * Signup page component
@@ -6,8 +6,6 @@ import { SignupClient } from '../../components/signup-client';
  */
 export default function SignupPage() {
   return (
-    <div>
-      <SignupClient />
-    </div>
+    <SignupClient />
   );
 }

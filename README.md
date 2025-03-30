@@ -69,3 +69,57 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Download face-api.js models:
+   - Create a `public/models` directory
+   - Download the following files from the face-api.js repository and place them in the `public/models` directory:
+     - tiny_face_detector_model-weights_manifest.json
+     - tiny_face_detector_model.weights.bin
+     - face_landmark_68_model-weights_manifest.json
+     - face_landmark_68_model.weights.bin
+     - face_recognition_model-weights_manifest.json
+     - face_recognition_model.weights.bin
+
+   You can download these files from:
+   https://github.com/justadudewhohacks/face-api.js/tree/master/weights
+
+3. Configure your blockchain settings:
+   - Update the `CONTRACT_ADDRESS` in `services/blockchain.ts` with your deployed contract address
+   - Make sure you have MetaMask or another Web3 provider installed
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+## Features
+
+- Quadratic voting system
+- Facial verification for voter identity
+- Blockchain-based vote storage
+- IPFS integration for storing verification images
+- Real-time face detection
+
+## Architecture
+
+The application uses:
+- Next.js for the frontend
+- face-api.js for face detection
+- IPFS for decentralized image storage
+- Ethereum for vote and verification data storage
+- Web3.js for blockchain interactions
+
+## Security
+
+- All facial verification data is stored on IPFS
+- Verification metadata is stored on the blockchain
+- Images are hashed before storage
+- Face detection is performed client-side
+- Quadratic voting prevents vote concentration

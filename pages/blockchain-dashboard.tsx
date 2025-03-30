@@ -1,118 +1,68 @@
 "use client";
 
-import { NextPage } from "next";
-import Head from "next/head";
-import { useAccount } from "wagmi";
-import { useBlockchain } from "@/context/blockchain-context";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React from "react";
+import { useWeb3 } from "@/context/web3-context";
+import { ContractInteraction } from "@/components/scaffold/ContractInteraction";
+import { TransactionManager } from "@/components/scaffold/TransactionManager";
 import { Button } from "@/components/ui/button";
-import { formatEther } from "viem";
+import { LogOut } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
-/**
- * Possible blockchain environment types
- */
-type BlockchainEnvironment = "development" | "test" | "production";
+// Example ABI - replace with your contract's ABI
+const EXAMPLE_ABI = [
+  {
+    "inputs": [],
+    "name": "getValue",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "_value", "type": "uint256"}],
+    "name": "setValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
 
-/**
- * Tab identifiers for the blockchain dashboard
- */
-type BlockchainTab = "overview" | "tokens" | "verification" | "elections";
+export default function BlockchainDashboard() {
+  const { account } = useWeb3();
+  const { logout } = useAuth();
 
-/**
- * Props for the BlockchainDashboard page
- */
-interface BlockchainDashboardProps {
-  readonly initialTab?: BlockchainTab;
-  readonly environment?: BlockchainEnvironment;
-  readonly isAdmin?: boolean;
-}
+  // Example contract address - replace with your contract's address
+  const contractAddress = "0x1234567890123456789012345678901234567890";
 
-const BlockchainDashboard: NextPage<BlockchainDashboardProps> = ({
-  initialTab = "overview",
-  environment = "development",
-  isAdmin = false
-}) => {
-  const { address, isConnected } = useAccount();
-  const { walletState, connectWallet, disconnectWallet, formatAddress } = useBlockchain();
-
-  // Format the address for display
-  const displayAddress = formatAddress(address);
-
-  // Format balance for display
-  const formatBalance = (balance: bigint | null): string => {
-    if (!balance) return "0.00";
-    return formatEther(balance);
-  };
+  if (!account) {
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Blockchain Dashboard</h1>
+        <p>Please connect your wallet to view the dashboard.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Head>
-        <title>Blockchain Dashboard - VoteRight</title>
-        <meta name="description" content="Blockchain dashboard for VoteRight platform" />
-      </Head>
-
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Blockchain Dashboard</h1>
-
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Wallet Status</h2>
-            <div className="flex gap-2">
-              {isConnected ? (
-                <Button variant="outline" onClick={disconnectWallet}>
-                  Disconnect
-                </Button>
-              ) : (
-                <Button onClick={connectWallet}>Connect Wallet</Button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Connected Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">{displayAddress}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Network</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  {walletState.chainId ? `Chain ID: ${walletState.chainId}` : "Not connected"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Blockchain Dashboard</h1>
+        <Button variant="outline" size="sm" onClick={logout}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="p-4 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Contract Interaction</h2>
+          <ContractInteraction 
+            contractAddress={contractAddress}
+            contractABI={EXAMPLE_ABI}
+          />
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>VoteRight Tokens</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">This section will show your VRG token balance</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">This section will show your recent blockchain transactions</p>
-            </CardContent>
-          </Card>
+        <div className="p-4 border rounded-lg">
+          <TransactionManager />
         </div>
       </div>
     </div>
   );
-};
-
-export default BlockchainDashboard;
+}

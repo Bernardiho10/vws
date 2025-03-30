@@ -8,6 +8,8 @@ import { Camera, Upload } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { PreviewCircle } from "@/components/preview-circle"
 import Link from 'next/link';
+import Image from 'next/image';
+
 
 interface ImageCaptureConfig {
   readonly quality: number
@@ -227,7 +229,7 @@ export function LandingPage() {
           {capturedImage && (
             <div className="w-full flex flex-col gap-4 items-center">
               <PreviewCircle>
-                <img src={capturedImage || "/placeholder.svg"} alt="Captured" className="w-full h-full object-cover" />
+                <Image src={capturedImage || "/placeholder.svg"} alt="Captured" className="w-full h-full object-cover" />
               </PreviewCircle>
 
               <div className="flex gap-4">
